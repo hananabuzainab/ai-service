@@ -1,0 +1,14 @@
+Backend Developer (Junior)
+
+We are looking for a Backend Developer to join our team.
+
+Requirements:
+- Strong knowledge of Python and SQL
+- Experience building REST APIs with FastAPI or Flask
+- Familiarity with PostgreSQL
+- Experience with Docker and Git
+- Basic knowledge of AWS
+
+Nice to have: Kubernetes, CI/CD pipelines
+
+Good communication skills are important.
