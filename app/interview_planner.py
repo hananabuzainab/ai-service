@@ -1,36 +1,79 @@
 import json
 
 from app.llm import ask_llm_json
+from app.interview_schemas import InterviewStartRequest
 from app.interview_plan_schemas import InterviewPlan
 from prompts.plan_interview import PLAN_INTERVIEW_PROMPT
 
 
-def create_interview_plan(interview_data: dict) -> InterviewPlan:
+# --------------------------------------------------
+# Generate interview plan
+# --------------------------------------------------
+
+def generate_interview_plan(req: InterviewStartRequest):
+
     user_message = f"""
-<job_title>
-{interview_data["job_title"]}
-</job_title>
+<JOB_TITLE>
+{req.job_title}
+</JOB_TITLE>
 
-<job_description>
-{interview_data["job_description"]}
-</job_description>
+<JOB_DESCRIPTION>
+{req.job_description}
+</JOB_DESCRIPTION>
 
-<resume>
-{interview_data["resume_text"]}
-</resume>
+<RESUME>
+{req.resume}
+</RESUME>
 
-<matching_skills>
-{json.dumps(interview_data["matching_skills"], ensure_ascii=False)}
-</matching_skills>
+<MATCHING_SKILLS>
+{json.dumps(
+    [skill.model_dump() for skill in req.matching_skills],
+    ensure_ascii=False,
+)}
+</MATCHING_SKILLS>
 
-<missing_skills>
-{json.dumps(interview_data["missing_skills"], ensure_ascii=False)}
-</missing_skills>
+<MISSING_SKILLS>
+{json.dumps(
+    [skill.model_dump() for skill in req.missing_skills],
+    ensure_ascii=False,
+)}
+</MISSING_SKILLS>
 """
 
     result = ask_llm_json(
-    PLAN_INTERVIEW_PROMPT,
-    user_message,
+        PLAN_INTERVIEW_PROMPT,
+        user_message,
+        response_schema=InterviewPlan,
     )
 
-    return InterviewPlan.model_validate(result)
+    plan = InterviewPlan.model_validate(result)
+
+    # Validate question distribution.
+    behavioral_count = sum(
+        question.category == "behavioral"
+        for question in plan.questions
+    )
+
+    technical_count = sum(
+        question.category == "technical"
+        for question in plan.questions
+    )
+
+    if behavioral_count != 4 or technical_count != 6:
+        raise ValueError(
+            "Interview plan must contain "
+            "4 behavioral and 6 technical questions."
+        )
+
+    # Validate sequential question IDs.
+    question_ids = [
+        question.id
+        for question in plan.questions
+    ]
+
+    if question_ids != list(range(1, 11)):
+        raise ValueError(
+            "Question IDs must be sequential from 1 to 10."
+        )
+
+    return plan

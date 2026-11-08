@@ -60,6 +60,9 @@ ALIASES = {
     # Security
     "json web token": "jwt",
     "json web tokens": "jwt",
+
+    # CSS ecosystem
+"tailwind": "tailwind css",
 }
 
 

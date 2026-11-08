@@ -1,4 +1,3 @@
-
 from typing import Literal
 
 from pydantic import Field
@@ -6,12 +5,7 @@ from pydantic import Field
 from app.schemas import BaseSchema
 
 
-InterviewCategory = Literal[
-    "behavioral",
-    "technical",
-]
-
-InterviewDimension = Literal[
+EvaluationDimension = Literal[
     "technical_depth",
     "communication",
     "domain_experience",
@@ -20,31 +14,18 @@ InterviewDimension = Literal[
 
 
 class PlannedQuestion(BaseSchema):
-    question_id: int = Field(ge=1, le=10)
+    id: int = Field(ge=1, le=10)
 
-    category: InterviewCategory
+    category: Literal["behavioral", "technical"]
 
-    question_type: str = Field(
-        min_length=1,
-        max_length=50,
-    )
+    skill: str | None = None
 
-    skill: str | None = Field(
-        default=None,
-        max_length=100,
-    )
+    difficulty: Literal["easy", "medium", "hard"]
 
-    difficulty: Literal[
-        "easy",
-        "medium",
-        "hard",
-    ]
+    primary_dimension: EvaluationDimension
 
-    primary_dimension: InterviewDimension
-
-    secondary_dimensions: list[InterviewDimension] = Field(
-        default_factory=list,
-        max_length=3,
+    secondary_dimensions: list[EvaluationDimension] = Field(
+        default_factory=list
     )
 
     evaluation_criteria: list[str] = Field(
@@ -58,7 +39,3 @@ class InterviewPlan(BaseSchema):
         min_length=10,
         max_length=10,
     )
-
-
-class GeneratedQuestion(BaseSchema):
-    question: str = Field(min_length=5, max_length=2000)    

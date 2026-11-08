@@ -60,6 +60,50 @@ def get_client():
 
 
 # --------------------------------------------------
+# Response schema preparation
+# --------------------------------------------------
+
+def _prepare_response_schema(response_schema):
+    """
+    Prepare a Pydantic model or JSON schema
+    for Gemini structured output.
+
+    Remove additionalProperties recursively
+    because Gemini does not support it in
+    the response schema.
+    """
+
+    if hasattr(response_schema, "model_json_schema"):
+        schema = response_schema.model_json_schema()
+
+    elif isinstance(response_schema, dict):
+        schema = response_schema.copy()
+
+    else:
+        raise TypeError(
+            "response_schema must be a Pydantic model "
+            "or a JSON schema dictionary."
+        )
+
+    def remove_additional_properties(value):
+        if isinstance(value, dict):
+            value.pop("additionalProperties", None)
+
+            for nested_value in value.values():
+                remove_additional_properties(
+                    nested_value
+                )
+
+        elif isinstance(value, list):
+            for item in value:
+                remove_additional_properties(item)
+
+    remove_additional_properties(schema)
+
+    return schema
+
+
+# --------------------------------------------------
 # Gemini request
 # --------------------------------------------------
 
@@ -89,7 +133,7 @@ def _generate_response(
 
         if response_schema is not None:
             config_options["response_schema"] = (
-                response_schema
+                _prepare_response_schema(response_schema)
             )
 
     elif response_schema is not None:
