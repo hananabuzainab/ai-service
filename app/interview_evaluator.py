@@ -15,7 +15,7 @@ def evaluate_interview_answer(
     req: InterviewAnswerRequest,
     interview: dict,
 ):
-    question_id = int(req.id)
+    question_id = req.id
 
     # Find the planned question.
     planned_question = next(

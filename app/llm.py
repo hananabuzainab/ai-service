@@ -20,7 +20,6 @@ MODEL = os.getenv(
 )
 
 MAX_OUTPUT_TOKENS = 4000
-DEFAULT_RETRIES = 2
 REQUEST_TIMEOUT_MS = 60000
 
 _client = None
@@ -180,69 +179,44 @@ def ask_llm(system_prompt, user_message):
 # JSON response
 # --------------------------------------------------
 
+
 def ask_llm_json(
     system_prompt,
     user_message,
-    retries=DEFAULT_RETRIES,
     response_schema=None,
 ):
     """
     Generate and parse a JSON response.
 
-    Retries are used for:
-    - Empty responses
-    - Invalid JSON
-    - JSON responses with an invalid root type
-
-    HTTP/network retry handling is delegated
-    to the Google GenAI SDK.
+    No retry is performed.
+    Invalid or empty responses raise an error immediately.
     """
 
-    if (
-        isinstance(retries, bool)
-        or not isinstance(retries, int)
-        or retries < 0
-    ):
+    response = _generate_response(
+        system_prompt,
+        user_message,
+        json_mode=True,
+        response_schema=response_schema,
+    )
+
+    response_text = response.text
+
+    if not response_text:
         raise ValueError(
-            "retries must be a non-negative integer"
+            "Gemini returned an empty response"
         )
 
-    last_error = None
+    try:
+        result = json.loads(response_text)
 
-    for attempt in range(retries + 1):
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            f"Gemini returned invalid JSON: {error}"
+        ) from error
 
-        response = _generate_response(
-            system_prompt,
-            user_message,
-            json_mode=True,
-            response_schema=response_schema,
+    if not isinstance(result, dict):
+        raise ValueError(
+            "Gemini JSON response must be an object"
         )
 
-        response_text = response.text
-
-        if not response_text:
-            last_error = ValueError(
-                "Gemini returned an empty response"
-            )
-
-        else:
-            try:
-                result = json.loads(response_text)
-
-                if not isinstance(result, dict):
-                    raise ValueError(
-                        "Gemini JSON response must be an object"
-                    )
-
-                return result
-
-            except (json.JSONDecodeError, ValueError) as error:
-                last_error = error
-
-        if attempt < retries:
-            continue
-
-    raise ValueError(
-        f"Gemini did not return valid JSON after "
-        f"{retries + 1} attempts: {last_error}"
-    ) from last_error
+    return result

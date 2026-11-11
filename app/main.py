@@ -200,6 +200,7 @@ def extract_job(req: JobRequest):
 MAX_ROADMAPS = 5
 
 
+
 @app.post(
     "/v1/generate-roadmap",
     response_model=RoadmapsResponse,
@@ -237,17 +238,12 @@ def generate_roadmaps(req: RoadmapRequest):
         except Exception as error:
 
             logger.exception(
-                "Roadmap generation failed. Error type: %s",
+                "Roadmap generation failed for skill '%s'. Error type: %s",
+                skill["name"],
                 type(error).__name__,
             )
 
-            raise HTTPException(
-                status_code=502,
-                detail=error_detail(
-                    "AI_FAILED",
-                    "Could not generate the roadmap.",
-                ),
-            ) from error
+            continue
 
     return RoadmapsResponse(
         roadmaps=roadmaps,
@@ -284,7 +280,7 @@ def start_interview(req: InterviewStartRequest):
         # Step 4: Prepare questions for the backend.
         questions = [
             InterviewQuestion(
-                id=str(question.id),
+                id=question.id,
                 text=question.text,
                 type=question.type,
             )

@@ -24,17 +24,12 @@ def test_valid_json_response(monkeypatch):
     assert result == {"skills": []}
 
 
-def test_invalid_json_retries(monkeypatch):
-    responses = [
-        Mock(text="invalid json"),
-        Mock(text='{"skills": []}')
-    ]
-
+def test_invalid_json_no_retry(monkeypatch):
     calls = []
 
     def fake_generate(*args, **kwargs):
         calls.append(1)
-        return responses.pop(0)
+        return Mock(text="invalid json")
 
     monkeypatch.setattr(
         llm,
@@ -42,74 +37,57 @@ def test_invalid_json_retries(monkeypatch):
         fake_generate
     )
 
-    result = llm.ask_llm_json(
-        "system prompt",
-        "user message",
-        retries=1
-    )
+    with pytest.raises(ValueError, match="invalid JSON"):
+        llm.ask_llm_json(
+            "system prompt",
+            "user message"
+        )
 
-    assert result == {"skills": []}
-    assert len(calls) == 2
+    assert len(calls) == 1
 
 
-def test_empty_response_retries(monkeypatch):
-    responses = [
-        Mock(text=None),
-        Mock(text='{"skills": []}')
-    ]
+def test_empty_response_no_retry(monkeypatch):
+    calls = []
+
+    def fake_generate(*args, **kwargs):
+        calls.append(1)
+        return Mock(text=None)
 
     monkeypatch.setattr(
         llm,
         "_generate_response",
-        lambda *args, **kwargs: responses.pop(0)
+        fake_generate
     )
 
-    result = llm.ask_llm_json(
-        "system prompt",
-        "user message",
-        retries=1
-    )
+    with pytest.raises(ValueError, match="empty response"):
+        llm.ask_llm_json(
+            "system prompt",
+            "user message"
+        )
 
-    assert result == {"skills": []}
+    assert len(calls) == 1
 
 
-def test_non_object_json_retries(monkeypatch):
-    responses = [
-        Mock(text='["python", "django"]'),
-        Mock(text='{"skills": []}')
-    ]
+def test_non_object_json_no_retry(monkeypatch):
+    calls = []
+
+    def fake_generate(*args, **kwargs):
+        calls.append(1)
+        return Mock(text='["python", "django"]')
 
     monkeypatch.setattr(
         llm,
         "_generate_response",
-        lambda *args, **kwargs: responses.pop(0)
+        fake_generate
     )
 
-    result = llm.ask_llm_json(
-        "system prompt",
-        "user message",
-        retries=1
-    )
-
-    assert result == {"skills": []}
-
-
-def test_invalid_retries_value():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be an object"):
         llm.ask_llm_json(
             "system prompt",
-            "user message",
-            retries=-1
+            "user message"
         )
 
-
-def test_boolean_retries_rejected():
-    with pytest.raises(ValueError):
-        llm.ask_llm_json(
-            "system prompt",
-            "user message",
-            retries=True
-        )
+    assert len(calls) == 1
 
 
 def test_permanent_api_error_is_not_retried(monkeypatch):
@@ -125,11 +103,10 @@ def test_permanent_api_error_is_not_retried(monkeypatch):
         fake_generate
     )
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="API key invalid"):
         llm.ask_llm_json(
             "system prompt",
-            "user message",
-            retries=2
+            "user message"
         )
 
     assert len(calls) == 1

@@ -11,7 +11,7 @@ client = TestClient(app)
 
 def create_request():
     return {
-        "interview_id": "test-interview-123",
+        "interview_id": 123,
         "resume": "Candidate resume text " * 10,
         "job_description": "Software Engineer job description " * 10,
         "job_title": "Software Engineer",
@@ -107,7 +107,7 @@ def test_start_interview(monkeypatch):
     assert len(data["questions"]) == 10
 
     assert data["questions"][0] == {
-        "id": "1",
+        "id": 1,
         "text": "Interview question number 1?",
         "type": "main",
     }
@@ -118,9 +118,9 @@ def test_start_interview(monkeypatch):
     )
 
     # Ensure interview data was stored.
-    assert "test-interview-123" in interviews
+    assert 123 in interviews
 
-    saved = interviews["test-interview-123"]
+    saved = interviews[123]
 
     assert isinstance(saved["plan"], InterviewPlan)
     assert isinstance(saved["questions"], GeneratedQuestions)

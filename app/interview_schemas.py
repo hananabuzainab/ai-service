@@ -61,7 +61,7 @@ class InterviewAnalysisData(BaseSchema):
 
 
 class InterviewStartRequest(BaseSchema):
-    interview_id: str = Field(min_length=1)
+    interview_id: int = Field(ge=1)
     resume: str = Field(min_length=50)
     job_description: str = Field(min_length=20)
     job_title: str = Field(min_length=1)
@@ -72,7 +72,7 @@ class InterviewStartRequest(BaseSchema):
 # --------------------------------------------------
 
 class InterviewQuestion(BaseSchema):
-    id: str
+    id: int
 
     text: str = Field(
         min_length=1,
@@ -96,13 +96,9 @@ class InterviewStartResponse(BaseSchema):
 # --------------------------------------------------
 
 class InterviewAnswerRequest(BaseSchema):
-    interview_id: str = Field(
-        min_length=1,
-    )
+    interview_id: int = Field(ge=1)
 
-    id: str = Field(
-        min_length=1,
-    )
+    id: int = Field(ge=1)
 
     text: str = Field(
         min_length=1,
@@ -114,7 +110,7 @@ class InterviewAnswerRequest(BaseSchema):
 # --------------------------------------------------
 
 class InterviewAnswerResponse(BaseSchema):
-    id: str
+    id: int
     score: float = Field(ge=0, le=10)
     better_answer: str
 
@@ -131,7 +127,7 @@ class CriterionResult(BaseSchema):
 
 
 class InterviewInternalEvaluation(BaseSchema):
-    id: str
+    id: int
     score: float = Field(ge=0, le=10)
     criteria_results: list[CriterionResult]
     better_answer: str    

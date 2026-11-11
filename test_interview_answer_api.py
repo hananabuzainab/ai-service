@@ -1,3 +1,4 @@
+
 from fastapi.testclient import TestClient
 
 from app.main import app, interviews
@@ -7,7 +8,7 @@ client = TestClient(app)
 
 
 def test_evaluate_answer_success(monkeypatch):
-    interview_id = "test-interview"
+    interview_id = 123
 
     interviews[interview_id] = {
         "request": None,
@@ -31,7 +32,7 @@ def test_evaluate_answer_success(monkeypatch):
         "/v1/interview/answer",
         json={
             "interview_id": interview_id,
-            "id": "1",
+            "id": 1,
             "text": "My answer to the question.",
         },
     )
@@ -40,7 +41,7 @@ def test_evaluate_answer_success(monkeypatch):
 
     data = response.json()
 
-    assert data["id"] == "1"
+    assert data["id"] == 1
     assert data["score"] == 8.5
     assert data["better_answer"] == "A detailed model answer."
 
@@ -51,8 +52,8 @@ def test_evaluate_answer_interview_not_found():
     response = client.post(
         "/v1/interview/answer",
         json={
-            "interview_id": "unknown-interview",
-            "id": "1",
+            "interview_id": 999,
+            "id": 1,
             "text": "My answer.",
         },
     )
@@ -62,7 +63,7 @@ def test_evaluate_answer_interview_not_found():
 
 
 def test_evaluate_answer_invalid_question(monkeypatch):
-    interview_id = "test-interview"
+    interview_id = 123
 
     interviews[interview_id] = {}
 
@@ -78,7 +79,7 @@ def test_evaluate_answer_invalid_question(monkeypatch):
         "/v1/interview/answer",
         json={
             "interview_id": interview_id,
-            "id": "11",
+            "id": 11,
             "text": "My answer.",
         },
     )
@@ -90,7 +91,7 @@ def test_evaluate_answer_invalid_question(monkeypatch):
 
 
 def test_evaluate_answer_ai_failure(monkeypatch):
-    interview_id = "test-interview"
+    interview_id = 123
 
     interviews[interview_id] = {}
 
@@ -106,7 +107,7 @@ def test_evaluate_answer_ai_failure(monkeypatch):
         "/v1/interview/answer",
         json={
             "interview_id": interview_id,
-            "id": "1",
+            "id": 1,
             "text": "My answer.",
         },
     )
@@ -122,7 +123,7 @@ def test_evaluate_answer_invalid_request():
         "/v1/interview/answer",
         json={
             "interview_id": "",
-            "id": "1",
+            "id": 1,
             "text": "My answer.",
         },
     )

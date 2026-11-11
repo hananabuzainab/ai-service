@@ -1,4 +1,6 @@
 
+import pytest
+
 from app.interview_schemas import InterviewStartRequest
 from app.interview_plan_schemas import InterviewPlan
 from app.interview_planner import generate_interview_plan
@@ -11,7 +13,7 @@ from app.interview_planner import generate_interview_plan
 def create_request():
 
     return InterviewStartRequest(
-        interview_id="test-123",
+        interview_id=123,
         resume="Candidate resume text " * 10,
         job_description="Software Engineer job description " * 10,
         job_title="Software Engineer",
@@ -137,8 +139,6 @@ def test_reject_invalid_question_distribution(monkeypatch):
         fake_ask_llm_json,
     )
 
-    import pytest
-
     with pytest.raises(
         ValueError,
         match="4 behavioral and 6 technical",
@@ -159,8 +159,6 @@ def test_reject_non_sequential_question_ids(monkeypatch):
         "app.interview_planner.ask_llm_json",
         fake_ask_llm_json,
     )
-
-    import pytest
 
     with pytest.raises(
         ValueError,

@@ -9,7 +9,7 @@ from app.interview_generation_schemas import GeneratedQuestions
 
 def create_request():
     return InterviewStartRequest(
-        interview_id="test-123",
+        interview_id=123,
         resume="Candidate resume text " * 10,
         job_description="Software Engineer job description " * 10,
         job_title="Software Engineer",

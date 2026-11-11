@@ -7,4 +7,4 @@
 | POST | `/v1/extract-job` | Extracts technical skills from a job description and assigns importance scores. |
 | POST | `/v1/generate-roadmap` | Generates personalized learning roadmaps for missing skills. |
 | POST | `/v1/interview/start` | Generates an interview plan and the interview questions. |
-| POST | `/v1/interview/answer` | Evaluates a candidate's answer and returns a score and an improved answer. |
+| POST | `/v1/interview/answer` | Evaluates a candidate's answer and returns a score and an improved answer. |git status

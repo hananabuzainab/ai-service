@@ -188,7 +188,76 @@ def test_roadmaps_sorted_by_importance(monkeypatch):
     ]
 
 
-def test_roadmap_generation_failure(monkeypatch):
+
+def test_roadmap_generation_failure_continues_with_remaining_skills(monkeypatch):
+    generated_skills = []
+
+    def fake_generate(skill, priority, job_title, known):
+        generated_skills.append((skill["name"], priority))
+
+        if skill["name"] == "django":
+            raise RuntimeError("Gemini failed")
+
+        return make_roadmap(skill, priority)
+
+    monkeypatch.setattr(
+        main,
+        "generate_roadmap",
+        fake_generate,
+    )
+
+    response = client.post(
+        "/v1/generate-roadmap",
+        json={
+            "job_title": "Backend Developer",
+            "matching_skills": [],
+            "missing_skills": [
+                {
+                    "id": 1,
+                    "name": "django",
+                    "category": "frameworks",
+                    "importance": 0.9,
+                },
+                {
+                    "id": 2,
+                    "name": "docker",
+                    "category": "cloud_devops",
+                    "importance": 0.8,
+                },
+                {
+                    "id": 3,
+                    "name": "sql",
+                    "category": "databases",
+                    "importance": 0.7,
+                },
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert generated_skills == [
+        ("django", 1),
+        ("docker", 2),
+        ("sql", 3),
+    ]
+
+    assert len(data["roadmaps"]) == 2
+
+    assert [
+        item["skill_name"]
+        for item in data["roadmaps"]
+    ] == ["docker", "sql"]
+
+    assert [
+        item["priority"]
+        for item in data["roadmaps"]
+    ] == [2, 3]
+
+
+def test_all_roadmap_generations_fail(monkeypatch):
     def fake_generate(*args):
         raise RuntimeError("Gemini failed")
 
@@ -209,14 +278,16 @@ def test_roadmap_generation_failure(monkeypatch):
                     "name": "django",
                     "category": "frameworks",
                     "importance": 0.9,
-                }
+                },
+                {
+                    "id": 2,
+                    "name": "docker",
+                    "category": "cloud_devops",
+                    "importance": 0.8,
+                },
             ],
         },
     )
 
-    assert response.status_code == 502
-
-    assert (
-        response.json()["detail"]["error"]["code"]
-        == "AI_FAILED"
-    )
+    assert response.status_code == 200
+    assert response.json() == {"roadmaps": []}

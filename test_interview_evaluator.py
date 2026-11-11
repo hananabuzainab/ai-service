@@ -18,7 +18,7 @@ from app.interview_generation_schemas import (
 
 def create_interview():
     request = InterviewStartRequest(
-        interview_id="test-123",
+        interview_id=123,
         resume=(
             "Python developer with practical experience in software development, "
             "programming concepts, and building applications using Python."
@@ -78,7 +78,7 @@ def test_evaluate_answer_success(monkeypatch):
 
     def fake_ask_llm_json(*args, **kwargs):
         return {
-            "id": "1",
+            "id": 1,
             "score": 8.5,
             "criteria_results": [
                 {
@@ -101,27 +101,24 @@ def test_evaluate_answer_success(monkeypatch):
     )
 
     request = InterviewAnswerRequest(
-        interview_id="test-123",
-        id="1",
+        interview_id=123,
+        id=1,
         text="A list is mutable, but a tuple is immutable.",
     )
 
     result = evaluate_interview_answer(request, interview)
 
-    # Check the public response.
-    assert result.id == "1"
+    assert result.id == 1
     assert result.score == 8.5
     assert result.better_answer == (
         "A list is mutable, while a tuple is immutable."
     )
 
-    # Internal evaluation must not be exposed in the public response.
     assert not hasattr(result, "criteria_results")
 
-    # Check that the answer and full evaluation were stored internally.
-    assert interview["evaluations"]["1"]["answer"] == request.text
+    assert interview["evaluations"][1]["answer"] == request.text
 
-    stored_evaluation = interview["evaluations"]["1"]["evaluation"]
+    stored_evaluation = interview["evaluations"][1]["evaluation"]
 
     assert stored_evaluation.score == 8.5
     assert len(stored_evaluation.criteria_results) == 2
@@ -132,12 +129,12 @@ def test_evaluate_answer_success(monkeypatch):
     )
 
 
-def test_evaluate_answer_question_not_found(monkeypatch):
+def test_evaluate_answer_question_not_found():
     interview = create_interview()
 
     request = InterviewAnswerRequest(
-        interview_id="test-123",
-        id="11",
+        interview_id=123,
+        id=11,
         text="My answer.",
     )
 
@@ -150,7 +147,7 @@ def test_evaluate_answer_id_mismatch(monkeypatch):
 
     def fake_ask_llm_json(*args, **kwargs):
         return {
-            "id": "2",
+            "id": 2,
             "score": 8,
             "criteria_results": [
                 {
@@ -173,13 +170,12 @@ def test_evaluate_answer_id_mismatch(monkeypatch):
     )
 
     request = InterviewAnswerRequest(
-        interview_id="test-123",
-        id="1",
+        interview_id=123,
+        id=1,
         text="My answer.",
     )
 
     with pytest.raises(ValueError, match="question ID does not match"):
         evaluate_interview_answer(request, interview)
 
-    # An invalid evaluation must not be stored.
     assert "evaluations" not in interview
