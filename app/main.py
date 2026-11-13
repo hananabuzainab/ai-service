@@ -3,7 +3,11 @@ import logging
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 
-from app.llm import ask_llm_json
+from app.llm import (
+    ask_llm_json,
+    build_resume_skills_schema,
+    build_job_skills_schema,
+)
 from app.pdf_utils import (
     extract_text_from_bytes,
     ResumeError,
@@ -82,11 +86,21 @@ def error_detail(code, message):
 # Shared skill extraction
 # --------------------------------------------------
 
-def extract_skills_from_text(text, tag, prompt, cleaner):
+def extract_skills_from_text(
+    text,
+    tag,
+    prompt,
+    cleaner,
+    response_schema,
+):
     try:
         user_message = f"<{tag}>\n{text}\n</{tag}>"
 
-        result = ask_llm_json(prompt, user_message)
+        result = ask_llm_json(
+            prompt,
+            user_message,
+            response_schema=response_schema,
+        )
 
         if not isinstance(result, dict):
             raise ValueError("AI response must be a JSON object")
@@ -158,6 +172,7 @@ def extract_resume(file: UploadFile = File(...)):
         lambda raw: clean_resume_skills(
             refine_resume_skills(raw)
         ),
+        build_resume_skills_schema(),
     )
 
     return ResumeResponse(
@@ -183,6 +198,7 @@ def extract_job(req: JobRequest):
         lambda raw: clean_job_skills(
             refine_job_skills(raw)
         ),
+        build_job_skills_schema(),
     )
 
     return JobResponse(
@@ -287,11 +303,11 @@ def start_interview(req: InterviewStartRequest):
 
         # Step 4: Return the generated questions.
         return InterviewStartResponse(
-    questions=[
-        question.model_dump()
-        for question in generated_questions.questions
-    ],
-)
+            questions=[
+                question.model_dump()
+                for question in generated_questions.questions
+            ],
+        )
 
     except Exception as error:
         logger.exception(
@@ -418,6 +434,7 @@ def generate_report(req: FinalReportRequest):
             ),
         ) from error
 
+
 # --------------------------------------------------
 # 8. Delete interview from memory
 # --------------------------------------------------
@@ -429,4 +446,4 @@ def delete_interview(interview_id: int):
 
     return {
         "message": "Interview data deleted successfully."
-    }    
+    }
