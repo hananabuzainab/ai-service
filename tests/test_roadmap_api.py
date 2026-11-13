@@ -62,7 +62,13 @@ def test_empty_missing_skills():
 
 
 def test_generate_roadmap_success(monkeypatch):
-    def fake_generate(skill, priority, job_title, known):
+    def fake_generate(
+        skill,
+        priority,
+        job_title,
+        known,
+        other_missing,
+    ):
         return make_roadmap(skill, priority)
 
     monkeypatch.setattr(
@@ -102,7 +108,13 @@ def test_generate_roadmap_success(monkeypatch):
 def test_maximum_five_roadmaps(monkeypatch):
     generated_skills = []
 
-    def fake_generate(skill, priority, job_title, known):
+    def fake_generate(
+        skill,
+        priority,
+        job_title,
+        known,
+        other_missing,
+    ):
         generated_skills.append(skill["name"])
         return make_roadmap(skill, priority)
 
@@ -139,7 +151,13 @@ def test_maximum_five_roadmaps(monkeypatch):
 def test_roadmaps_sorted_by_importance(monkeypatch):
     generated_skills = []
 
-    def fake_generate(skill, priority, job_title, known):
+    def fake_generate(
+        skill,
+        priority,
+        job_title,
+        known,
+        other_missing,
+    ):
         generated_skills.append(
             (skill["name"], priority)
         )
@@ -188,11 +206,18 @@ def test_roadmaps_sorted_by_importance(monkeypatch):
     ]
 
 
-
-def test_roadmap_generation_failure_continues_with_remaining_skills(monkeypatch):
+def test_roadmap_generation_failure_continues_with_remaining_skills(
+    monkeypatch,
+):
     generated_skills = []
 
-    def fake_generate(skill, priority, job_title, known):
+    def fake_generate(
+        skill,
+        priority,
+        job_title,
+        known,
+        other_missing,
+    ):
         generated_skills.append((skill["name"], priority))
 
         if skill["name"] == "django":
@@ -289,5 +314,4 @@ def test_all_roadmap_generations_fail(monkeypatch):
         },
     )
 
-    assert response.status_code == 200
-    assert response.json() == {"roadmaps": []}
+    assert response.status_code == 502

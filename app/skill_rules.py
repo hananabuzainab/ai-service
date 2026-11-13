@@ -62,7 +62,7 @@ ALIASES = {
     "json web tokens": "jwt",
 
     # CSS ecosystem
-"tailwind": "tailwind css",
+    "tailwind": "tailwind css",
 }
 
 
@@ -98,7 +98,6 @@ IMPLIES = {
     "symfony": ["php"],
     "spring boot": ["java"],
     "junit": ["java"],
-    "maven": ["java"],
     "rails": ["ruby"],
 
     # JavaScript ecosystem
@@ -113,8 +112,6 @@ IMPLIES = {
     # Cloud and DevOps
     "docker compose": ["docker"],
     "helm": ["kubernetes"],
-    "github actions": ["ci/cd"],
-    "jenkins": ["ci/cd"],
     "travisci": ["ci/cd"],
     "gitlab ci": ["ci/cd"],
     "circleci": ["ci/cd"],
@@ -172,6 +169,8 @@ CATEGORY = {
     "sass": "frameworks",
     "bootstrap": "frameworks",
     "celery": "frameworks",
+    "pytest": "frameworks",
+    "junit": "frameworks",
 
     # Machine Learning and Data
     "pandas": "ml_data",
@@ -214,8 +213,6 @@ CATEGORY = {
     "github": "tools",
     "gitlab": "tools",
     "bitbucket": "tools",
-    "pytest": "tools",
-    "junit": "tools",
     "maven": "tools",
     "jupyter": "tools",
     "postman": "tools",
@@ -228,7 +225,7 @@ CATEGORY = {
 }
 
 
-IMPLIED_CONFIDENCE_CAP = 0.85
+IMPLIED_CONFIDENCE_CAP = 0.70
 
 
 def _score(item, key):
@@ -294,7 +291,7 @@ def _canonical_parts(raw_name):
     # Extract skills inside parentheses.
     # Example: SQL (Postgres) -> SQL + Postgres
     match = re.match(
-        r"^(.*?)\s+\(([^()]*)\)\s*$",
+        r"^(.+?)\s+\(([^()]+)\)\s*$",
         name
     )
 

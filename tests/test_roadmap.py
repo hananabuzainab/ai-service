@@ -130,7 +130,14 @@ def test_clean_roadmap_limits_steps(monkeypatch):
 
     raw = {
         "steps": [
-            {"title": f"Step {i}", "topics": []}
+            {
+                "title": f"Step {i}",
+                "topics": [
+                    "Topic A",
+                    "Topic B",
+                    "Topic C",
+                ],
+            }
             for i in range(1, 9)
         ]
     }
@@ -139,7 +146,6 @@ def test_clean_roadmap_limits_steps(monkeypatch):
 
     assert len(result["steps"]) == roadmap.MAX_STEPS
     assert result["steps"][-1]["week"] == roadmap.MAX_STEPS
-
 
 def test_clean_roadmap_skips_invalid_steps(monkeypatch):
     monkeypatch.setattr(
@@ -157,7 +163,14 @@ def test_clean_roadmap_skips_invalid_steps(monkeypatch):
         "steps": [
             None,
             {"title": "", "topics": []},
-            {"title": "Valid step", "topics": ["Basics"]},
+            {
+                "title": "Valid step",
+                "topics": [
+                    "Basic concepts",
+                    "Core principles",
+                    "Practical examples",
+                ],
+            },
         ]
     }
 
@@ -166,7 +179,6 @@ def test_clean_roadmap_skips_invalid_steps(monkeypatch):
     assert len(result["steps"]) == 1
     assert result["steps"][0]["week"] == 1
     assert result["steps"][0]["title"] == "Valid step"
-
 
 def test_clean_roadmap_missing_steps():
     with pytest.raises(ValueError, match="no steps"):
@@ -202,13 +214,41 @@ def test_generate_roadmap_calls_llm_and_cleans(monkeypatch):
         roadmap,
         "ask_llm_json",
         lambda prompt, message: {
-            "steps": [
-                {
-                    "title": "Learn Python basics",
-                    "topics": ["Variables", "Functions"],
-                }
-            ]
+    "steps": [
+        {
+            "title": "Learn Python fundamentals",
+            "topics": [
+                "Variables and data types",
+                "Control flow",
+                "Functions",
+            ],
         },
+        {
+            "title": "Work with Python data structures",
+            "topics": [
+                "Lists and tuples",
+                "Dictionaries and sets",
+                "Data manipulation",
+            ],
+        },
+        {
+            "title": "Apply Python concepts",
+            "topics": [
+                "Error handling",
+                "File operations",
+                "Code organization",
+            ],
+        },
+        {
+            "title": "Build a practical Python project",
+            "topics": [
+                "Project planning",
+                "Implementation",
+                "Testing and debugging",
+            ],
+        },
+    ]
+},
     )
 
     monkeypatch.setattr(
@@ -233,5 +273,5 @@ def test_generate_roadmap_calls_llm_and_cleans(monkeypatch):
 
     assert result["skill_name"] == "Python"
     assert result["priority"] == 1
-    assert len(result["steps"]) == 1
-
+    assert len(result["steps"]) == 4
+    assert result["steps"][-1]["title"] == "Build a practical Python project"

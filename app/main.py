@@ -32,23 +32,19 @@ from app.skill_rules import (
 from app.interview_schemas import (
     InterviewStartRequest,
     InterviewStartResponse,
-    InterviewQuestion,
-)
-
-from app.interview_planner import generate_interview_plan
-
-from app.interview_question_generator import (
-    generate_interview_questions,
-)
-
-from app.interview_schemas import (
     InterviewAnswerRequest,
     InterviewAnswerResponse,
 )
+from app.interview_planner import generate_interview_plan
+from app.interview_question_generator import (
+    generate_interview_questions,
+)
 from app.interview_evaluator import evaluate_interview_answer
-
-
-
+from app.final_report_schemas import (
+    FinalReportRequest,
+    FinalReportResponse,
+)
+from app.final_report_generator import generate_final_report
 
 
 # --------------------------------------------------
@@ -60,6 +56,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Sparr AI Service")
+
+
 # --------------------------------------------------
 # Interview storage
 # --------------------------------------------------
@@ -101,7 +99,6 @@ def extract_skills_from_text(text, tag, prompt, cleaner):
         return cleaner(raw_skills)
 
     except Exception as error:
-
         logger.exception(
             "Skill extraction failed. Error type: %s",
             type(error).__name__,
@@ -200,7 +197,6 @@ def extract_job(req: JobRequest):
 MAX_ROADMAPS = 5
 
 
-
 @app.post(
     "/v1/generate-roadmap",
     response_model=RoadmapsResponse,
@@ -208,22 +204,27 @@ MAX_ROADMAPS = 5
 def generate_roadmaps(req: RoadmapRequest):
 
     if not req.missing_skills:
-        return RoadmapsResponse(
-            roadmaps=[],
-        )
+        return RoadmapsResponse(roadmaps=[])
 
     skills = sort_skills(
         [skill.model_dump() for skill in req.missing_skills]
-    )[:MAX_ROADMAPS]
+    )
 
-    known = [
-        skill.name
-        for skill in req.matching_skills
-    ]
-
+    known = [skill.name for skill in req.matching_skills]
     roadmaps = []
 
-    for priority, skill in enumerate(skills, start=1):
+    for index, skill in enumerate(skills):
+
+        if len(roadmaps) >= MAX_ROADMAPS:
+            break
+
+        priority = index + 1
+
+        other_missing = [
+            other["name"]
+            for other in skills
+            if other is not skill
+        ]
 
         try:
             roadmap = generate_roadmap(
@@ -231,23 +232,29 @@ def generate_roadmaps(req: RoadmapRequest):
                 priority,
                 req.job_title,
                 known,
+                other_missing,
             )
 
             roadmaps.append(roadmap)
 
         except Exception as error:
-
             logger.exception(
                 "Roadmap generation failed for skill '%s'. Error type: %s",
                 skill["name"],
                 type(error).__name__,
             )
-
             continue
 
-    return RoadmapsResponse(
-        roadmaps=roadmaps,
-    )
+    if not roadmaps:
+        raise HTTPException(
+            status_code=502,
+            detail=error_detail(
+                "AI_FAILED",
+                "Could not generate the roadmap.",
+            ),
+        )
+
+    return RoadmapsResponse(roadmaps=roadmaps)
 
 
 # --------------------------------------------------
@@ -261,42 +268,37 @@ def generate_roadmaps(req: RoadmapRequest):
 def start_interview(req: InterviewStartRequest):
 
     try:
-        # Step 1: Generate interview plan.
+        # Step 1: Generate the interview plan.
         plan = generate_interview_plan(req)
 
-        # Step 2: Generate actual interview questions.
-        generated = generate_interview_questions(
+        # Step 2: Generate the interview questions.
+        generated_questions = generate_interview_questions(
             req,
             plan,
         )
 
-        # Step 3: Store interview data for later evaluation.
+        # Step 3: Store interview context for later phases.
         interviews[req.interview_id] = {
             "request": req,
             "plan": plan,
-            "questions": generated,
+            "questions": generated_questions,
+            "evaluations": {},
         }
 
-        # Step 4: Prepare questions for the backend.
-        questions = [
-            InterviewQuestion(
-                id=question.id,
-                text=question.text,
-                type=question.type,
-            )
-            for question in generated.questions
-        ]
-
+        # Step 4: Return the generated questions.
         return InterviewStartResponse(
-            questions=questions,
-        )
+    questions=[
+        question.model_dump()
+        for question in generated_questions.questions
+    ],
+)
 
     except Exception as error:
-
         logger.exception(
             "Interview generation failed. Error type: %s",
             type(error).__name__,
         )
+        print("INTERVIEW START ERROR:", repr(error))
 
         raise HTTPException(
             status_code=502,
@@ -304,7 +306,7 @@ def start_interview(req: InterviewStartRequest):
                 "AI_FAILED",
                 "Could not generate interview questions.",
             ),
-        ) from error    
+        ) from error
 
 
 # --------------------------------------------------
@@ -359,6 +361,72 @@ def evaluate_answer(req: InterviewAnswerRequest):
                 "AI_FAILED",
                 "Could not evaluate interview answer.",
             ),
-        ) from error        
+        ) from error
 
 
+# --------------------------------------------------
+# 7. Generate final interview report
+# --------------------------------------------------
+
+@app.post(
+    "/v1/interview/report",
+    response_model=FinalReportResponse,
+)
+def generate_report(req: FinalReportRequest):
+
+    # Step 1: Find the interview.
+    interview = interviews.get(req.interview_id)
+
+    if interview is None:
+        raise HTTPException(
+            status_code=404,
+            detail=error_detail(
+                "INTERVIEW_CONTEXT_NOT_FOUND",
+                "Interview context is not available. Please use the stored backend sections.",
+            ),
+        )
+
+    try:
+        # Step 2: Generate the final report.
+        report = generate_final_report(
+            req,
+            interview,
+        )
+
+        return report
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=error_detail(
+                "INVALID_INTERVIEW_DATA",
+                str(error),
+            ),
+        ) from error
+
+    except Exception as error:
+        logger.exception(
+            "Final interview report generation failed. Error type: %s",
+            type(error).__name__,
+        )
+
+        raise HTTPException(
+            status_code=502,
+            detail=error_detail(
+                "AI_FAILED",
+                "Could not generate the final interview report.",
+            ),
+        ) from error
+
+# --------------------------------------------------
+# 8. Delete interview from memory
+# --------------------------------------------------
+
+@app.delete("/v1/interview/{interview_id}")
+def delete_interview(interview_id: int):
+
+    interviews.pop(interview_id, None)
+
+    return {
+        "message": "Interview data deleted successfully."
+    }    

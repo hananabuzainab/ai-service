@@ -89,6 +89,21 @@ RESOURCES = {
         }
     ],
 
+    "c#": [
+    {
+        "id": "csharp_docs",
+        "title": "Microsoft Learn: C#",
+        "url": "https://learn.microsoft.com/en-us/dotnet/csharp/",
+    }
+],
+".net": [
+    {
+        "id": "dotnet_tutorials",
+        "title": ".NET Getting Started Tutorials",
+        "url": "https://learn.microsoft.com/en-us/dotnet/standard/get-started",
+    }
+],
+
     # --------------------------------------------------
     # Databases
     # --------------------------------------------------
@@ -587,6 +602,162 @@ RESOURCES = {
             "url": "https://jwt.io/introduction",
         }
     ],
+
+
+    "django rest framework": [
+        {
+            "id": "drf_quickstart",
+            "title": "Django REST Framework Official Quickstart",
+            "url": "https://www.django-rest-framework.org/tutorial/quickstart/",
+        }
+    ],
+    "authentication": [
+        {
+            "id": "owasp_authentication",
+            "title": "OWASP Authentication Cheat Sheet",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+        }
+    ],
+    "authorization": [
+        {
+            "id": "owasp_authorization",
+            "title": "OWASP Authorization Cheat Sheet",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+        }
+    ],
+    "software testing": [
+        {
+            "id": "istqb_testing",
+            "title": "ISTQB Foundation Level Testing Syllabus",
+            "url": "https://istqb.org/wp-content/uploads/2024/11/ISTQB_CTFL_Syllabus_v4.0.1.pdf",
+        }
+    ],
+
+    # Computer Science Fundamentals
+
+"data structures and algorithms": [
+    {
+        "id": "mit_algorithms",
+        "title": "MIT OpenCourseWare: Introduction to Algorithms",
+        "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/",
+    }
+],
+"oop": [
+    {
+        "id": "python_oop",
+        "title": "Python Classes and Object-Oriented Programming",
+        "url": "https://docs.python.org/3/tutorial/classes.html",
+    }
+],
+
+# Networking and Cybersecurity
+
+"networking": [
+    {
+        "id": "cisco_networking",
+        "title": "Cisco Networking Academy",
+        "url": "https://www.netacad.com/",
+    }
+],
+"cybersecurity": [
+    {
+        "id": "nist_cybersecurity",
+        "title": "NIST Free Cybersecurity Learning Resources",
+        "url": "https://www.nist.gov/itl/applied-cybersecurity/nice/free-and-low-cost-online-cybersecurity-learning-content",
+    }
+],
+
+# DevOps and Automation
+
+"ansible": [
+    {
+        "id": "ansible_getting_started",
+        "title": "Ansible Getting Started",
+        "url": "https://docs.ansible.com/projects/ansible/latest/getting_started/",
+    }
+],
+
+# Data and Analytics
+
+"statistics": [
+    {
+        "id": "khan_statistics",
+        "title": "Khan Academy: Statistics and Probability",
+        "url": "https://www.khanacademy.org/math/statistics-probability",
+    }
+],
+"excel": [
+    {
+        "id": "excel_training",
+        "title": "Microsoft Excel Help and Learning",
+        "url": "https://support.microsoft.com/en-us/excel",
+    }
+],
+
+
+# Software Engineering and General Technical Skills
+
+"debugging": [
+    {
+        "id": "unsw_debugging",
+        "title": "UNSW: Learning Debugging",
+        "url": "https://cgi.cse.unsw.edu.au/~learn/debugging/",
+    }
+],
+"software engineering": [
+    {
+        "id": "swebok",
+        "title": "IEEE Software Engineering Body of Knowledge",
+        "url": "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
+    }
+],
+
+# Artificial Intelligence
+
+"artificial intelligence": [
+    {
+        "id": "microsoft_ai",
+        "title": "Microsoft Learn: AI Training",
+        "url": "https://learn.microsoft.com/en-us/training/ai/",
+    }
+],
+
+# Infrastructure and Data Engineering
+
+"terraform": [
+    {
+        "id": "terraform_learn",
+        "title": "Terraform Tutorials",
+        "url": "https://developer.hashicorp.com/terraform/tutorials",
+    }
+],
+"redis": [
+    {
+        "id": "redis_docs",
+        "title": "Redis Documentation",
+        "url": "https://redis.io/docs/latest/",
+    }
+],
+"apache kafka": [
+    {
+        "id": "kafka_intro",
+        "title": "Apache Kafka Introduction",
+        "url": "https://kafka.apache.org/intro",
+    }
+],
+
+# Data Visualization
+
+"tableau": [
+    {
+        "id": "tableau_training",
+        "title": "Tableau Free Training",
+        "url": "https://www.tableau.com/learn/training",
+    }
+],
+
+
+
 }
 
 
